@@ -15,12 +15,13 @@ struct Person:
     person_fav_num: uint256
 
 person_list: public(Person[5])
+    
 
 name_to_fav_num: public(HashMap[String[100], uint256])
 
 @deploy
 def __init__():
-    self.my_fav_num = 7
+    self.my_fav_num = 6
     self.index = 0
     self.person_list[3] = Person(person_name = "Chris", person_fav_num = 8)
 
@@ -45,5 +46,10 @@ def add_number(name: String[100], added_num: uint256):
     self.name_to_fav_num[name] = added_num
 
     self.index = self.index + 1
+
+@external
+@view
+def add() -> uint256:
+    return self.my_fav_num + 1
 
 
