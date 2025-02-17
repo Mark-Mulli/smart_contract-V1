@@ -1,5 +1,5 @@
 # pragma version 0.4.0
-# @liicence MIT
+# @licence MIT
 
 #favorite things list:
 #favorite numbers
