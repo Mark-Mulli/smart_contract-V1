@@ -14,11 +14,13 @@ interface AggregatorV3Interface:
 
 minimum_usd: uint256
 price_feed: AggregatorV3Interface
+owner: public(address)
 
 @deploy
 def __init__(price_feed_address: address):
     self.minimum_usd = as_wei_value(5, "ether")
     self.price_feed = AggregatorV3Interface(price_feed_address)
+    self.owner = msg.sender
 
 @external
 @payable
@@ -30,11 +32,14 @@ def fund():
 
     usd_value_of_eth: uint256 = self._get_eth_to_usd(msg.value)
     assert usd_value_of_eth >= self.minimum_usd, "You need to spend more ETH!"
+    
 
 
 @external
 def withdraw():
-    pass
+    assert msg.sender == self.owner, "Not the contract owner!"
+    send(self.owner, self.balance)
+    
 
 @internal
 @view
@@ -47,6 +52,12 @@ def _get_eth_to_usd(eth_amount: uint256) -> uint256:
     eth_amount_in_usd: uint256 = (eth_amount*eth_price) // (1 * (10 ** 18))
 
     return eth_amount_in_usd
+
+
+@external
+@view
+def get_eth_to_usd(eth_amount: uint256) -> uint256:
+    return self._get_eth_to_usd(eth_amount)
 
 # @external
 # @view
