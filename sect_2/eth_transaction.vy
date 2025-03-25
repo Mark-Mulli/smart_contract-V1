@@ -16,7 +16,7 @@ interface AggregatorV3Interface:
 
 MINIMUM_USD: public(constant(uint256)) = as_wei_value(5, "ether")
 PRICE_FEED: public(immutable(AggregatorV3Interface))
-OWNER: public(immutable(address))
+OWNER: public(address)
 PRECISION: constant(uint256) = (1 * (10 ** 18))
 
 funders: public(DynArray[address, 1000])
@@ -25,7 +25,7 @@ funder_to_amount_funded: public(HashMap[address, uint256])
 @deploy
 def __init__(price_feed_address: address):
     PRICE_FEED = AggregatorV3Interface(price_feed_address)
-    OWNER = msg.sender
+    self.OWNER = msg.sender
 
 @internal
 @payable
@@ -50,14 +50,32 @@ def fund():
 
 @external
 def withdraw():
-    assert msg.sender == OWNER, "Not the contract owner!"
+    assert msg.sender == self.OWNER, "Not the contract owner!"
     # send(OWNER, self.balance)
-    raw_call(OWNER, b"", value = self.balance)
+    raw_call(self.OWNER, b"", value = self.balance)
 
     for funder:address in self.funders:
         self.funder_to_amount_funded[funder] = 0
 
     self.funders = []  
+
+@external 
+@view
+def total_funds() -> uint256:
+    sum: uint256 = 0
+    for funder: address in self.funders:
+        sum = sum + self.funder_to_amount_funded[funder]
+    return sum
+
+@external 
+def change_owner(new_address: address) -> address:
+    assert (new_address != self.OWNER), "Cannot change the owner to the same address!"
+    self.OWNER = new_address
+    return self.OWNER
+
+
+
+
     
 
 @internal
@@ -89,3 +107,4 @@ def __default__():
 # def get_price() -> int256:
 #    price_feed: AggregatorV3Interface = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306)
 #    return staticcall price_feed.latestAnswer ()
+# PRICE FEED ADDRESS = 0xD9d6f482B88C43B256fD481826890dffC8544B13
